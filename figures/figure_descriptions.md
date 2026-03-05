@@ -1,186 +1,87 @@
 # Figure Descriptions — UBR3 N-terminal Peptide Screen
 
-We screened a library of **16,514 peptides** (24 amino acids long, all starting with Met) to find which ones are degraded by UBR3. **54 peptides** came out as the best substrates ("best hits"). We then asked: what's special about the amino acids right after the Met in these hits?
+**Dataset:** 16,514 peptides (24-mer, all starting with Met) screened for UBR3-dependent degradation. 54 best hits identified. All analyses compare the amino acid composition of the 54 hits to the full library at positions 2 and 3 (first two residues after Met).
 
 ---
 
-## Enrichment Analysis
+### Fig 1 — Enrichment bar chart (positions 2 and 3)
+Enrichment = frequency in hits / frequency in library, for each amino acid. Sorted by enrichment. Dashed line at 1.0 (no change).
+- Pos 2: Pro 4.3x, Gly 3.4x, Thr 2.4x
+- Pos 3: Asp 4.9x, Glu 2.2x, Pro 2.1x
 
-### Fig 1 — Which amino acids are enriched at positions 2 and 3?
-`fig1_enrichment_pos2_pos3_bars`
+### Fig 1b — Enrichment heatmap
+Same values as Fig 1, displayed as a 20x2 heatmap (amino acids x positions). Sorted by position 2 enrichment.
 
-We compared how often each amino acid appears at positions 2 and 3 in the 54 best hits versus the full library. A value of 1 means no difference; above 1 means the amino acid is found more often in hits than expected.
+### Fig 1c — Dipeptide enrichment heatmap (20x20)
+Enrichment of all 400 possible position 2-3 dipeptide combinations. Top hits: PD 40x, PT 36x, GD 35x, GE 32x, TN 31x.
 
-- **Position 2:** Pro (4.3x) and Gly (3.4x) are the winners.
-- **Position 3:** Asp (4.9x) and Glu (2.2x) stand out — both are negatively charged (acidic) residues.
+### Fig 2 — Frequency comparison (hits vs library)
+Raw frequency (%) of each amino acid at positions 2 and 3. Gold = library, dark red = hits. Sorted by hit frequency.
 
-### Fig 1b — Same data as Fig 1, shown as a heatmap
-`fig1b_enrichment_heatmap`
-
-The same enrichment values in a color-coded grid. Each cell shows how enriched a given amino acid is at position 2 or 3. Darker red = more enriched. Easy to spot that Pro/Gly are enriched at position 2, while Asp is the strongest signal at position 3.
-
-### Fig 1c — Which two-residue combinations are enriched?
-`fig1c_dipeptide_heatmap`
-
-Instead of looking at positions 2 and 3 separately, we looked at all possible two-residue combinations at these positions. The heatmap shows enrichment for each pair (position 2 on the y-axis, position 3 on the x-axis).
-
-The strongest combinations: **Pro-Asp (40x)**, Pro-Thr (36x), Gly-Asp (35x), Gly-Glu (32x). These are dramatically more common in the hits than in the library.
-
-### Fig 2 — How frequent is each amino acid in hits vs library?
-`fig2_frequency_comparison_bars`
-
-Side-by-side bars showing the actual percentage of each amino acid at positions 2 and 3. Gold = library (what we started with), dark red = best hits (what came out). Sorted by hit frequency so the dominant residues appear first.
-
-For example: Gly makes up **26%** of position 2 in hits but only 8% in the library. Asp is **22%** of position 3 in hits but only 5% in the library.
-
-### Fig 3 — Top enriched two-residue combinations
-`fig3_dipeptide_enrichment_bars`
-
-A ranked bar chart of the most enriched dipeptides at positions 2-3. Pro-Asp leads at ~40x enrichment, meaning this pair appears 40 times more often in the best hits than you'd expect from the library.
+### Fig 3 — Top dipeptide enrichment bars
+Top 20 dipeptides at positions 2-3 ranked by enrichment. PD leads at ~40x.
 
 ---
 
-## Sequence Logos
+### Fig 4 — Sequence logo (positions 2-3, best hits)
+Information content logo (bits) from 54 hit sequences. Letter height = conservation. Colors by biochemical category: dark red = acidic (D,E), brick red = basic (R,K,H), orange = nonpolar (G,A,V,L,I,P,F,M,W), gold = polar (S,T,C,Y,N,Q).
 
-### Fig 4 — Sequence logo of the best hits (positions 2-3)
-`fig4_logo_pos2_pos3_besthits`
+### Fig 4b — Sequence logo with Met (positions 1-3)
+Same as Fig 4, with Met at position 1 included. Met shows maximum information content (fully conserved).
 
-A sequence logo where the height of each letter reflects how conserved that amino acid is at that position. Taller letters = stronger preference.
+### Fig 5 / 5b — Extended logos (positions 2-6 and 1-6)
+Logo extended to 5 positions. Information content drops sharply after position 3, confirming specificity is restricted to the first two residues after Met.
 
-Colors represent amino acid type:
-- **Dark red** = acidic (Asp, Glu)
-- **Brick red** = basic (Arg, Lys, His)
-- **Orange** = nonpolar/hydrophobic (Gly, Ala, Val, Leu, Ile, Pro, etc.)
-- **Gold** = polar uncharged (Ser, Thr, Asn, Gln, etc.)
-
-Position 2 is dominated by **Gly and Pro** (nonpolar/orange). Position 3 is dominated by **Asp** (acidic/dark red) and Pro.
-
-Multiple color versions of this logo are available (see logo variants section below).
-
-### Fig 4b — Same logo but with Met at position 1
-`fig4b_logo_with_Met`
-
-Same as Fig 4 but including the Met at position 1. Since every peptide starts with Met, the M tower is huge (fully conserved). This shows the context: a fixed Met followed by the variable recognition signal at positions 2-3.
-
-### Fig 5 — Extended logo (positions 2-6)
-`fig5_logo_extended_besthits`
-
-The logo extended to positions 2 through 6. The strong signal at positions 2-3 fades quickly — by position 4, the letters are all small, meaning no amino acid is preferred anymore. This confirms that UBR3 recognition depends mainly on the first two residues after Met.
-
-### Fig 5b — Extended logo with Met (positions 1-6)
-`fig5b_logo_extended_with_Met`
-
-Same as Fig 5 but starting from Met. Shows the full picture: conserved Met &rarr; enriched positions 2-3 &rarr; random positions 4-6.
+### Logo color variants
+Same logo in 8 alternative color schemes: canonical warm, classic (red/blue/black/green), red spectrum, sunset, rose, terracotta, coral/blush, charge-focused.
 
 ---
 
-## Stability / PSI Analysis
+### Fig 6 — PSI by dipeptide position in the 24-mer
+For PD, PE, and GE motifs: mean PSI (AAVS, average of two replicates) calculated for all library peptides containing each motif at each of the 23 positions in the 24-mer. Top panel = mean PSI per position. Bottom panel = sample size. All three motifs show lowest PSI (least stable) at positions 2-3.
 
-### Fig 6 — Does the position of PD/PE/GE in the peptide matter?
-`fig6_PSI_AAVS_dipeptide_position`
+### Fig 7 — PSI position trend (line plot)
+Same data as Fig 6, as line plots. Filtered for n>=5. Positions 2-3 highlighted. Annotated with n and mean PSI at key positions.
 
-We took ALL 16,514 peptides and asked: if a peptide contains the motif PD, PE, or GE somewhere in its sequence, does it matter WHERE in the 24-mer that motif sits?
-
-We measured stability using PSI from the AAVS control (lower PSI = less stable = more degradation).
-
-- **Top panel:** mean stability (PSI) for peptides with each motif at each position. All three motifs show their lowest stability when they sit at positions 2-3 (right after Met).
-- **Bottom panel:** how many peptides have each motif at each position (sample sizes).
-
-### Fig 7 — Same data as Fig 6, shown as lines
-`fig7_PSI_position_effect_line`
-
-Line plot version of Fig 6 (only showing positions with 5+ peptides to avoid noise). Positions 2-3 are highlighted with a red shaded band. The dip at positions 2-3 is clearly visible for all three motifs — stability is lowest when PD/PE/GE is at the N-terminus.
-
-Specific values are annotated at positions 2 and 3 (sample size and mean PSI).
-
-### Fig 8 — N-terminal positions vs everywhere else
-`fig8_PSI_pos23_vs_other`
-
-A direct comparison: for each motif (PD, PE, GE), we split all peptides containing that motif into two groups — those where the motif is at positions 2-3 vs all other positions.
-- **Dark red bars** = positions 2-3
-- **Gold bars** = other positions
-
-For all three motifs, stability is lower at positions 2-3 than elsewhere. This supports the hypothesis that **these sequences destabilize proteins specifically when they are at the N-terminus** (right after Met).
+### Fig 8 — PSI: positions 2-3 vs other positions
+For each motif, peptides split into N-terminal (positions 2-3) vs downstream (positions 4-24). Mean PSI compared as paired bars with sample sizes. All three motifs show lower PSI at positions 2-3 (~0.1-0.3 units lower).
 
 ---
 
-## Additional Consensus Analyses
+### Fig 9 — Enrichment by amino acid category
+Amino acids grouped by property (acidic, basic, nonpolar, polar). Frequency compared between library and hits. Key result: acidic residues 3.3x enriched at position 3; basic residues depleted to 0.3x.
 
-### Fig 9 — Enrichment by amino acid type
-`fig9_AA_category_enrichment`
+### Fig 10 — Frequency difference (iceLogo-style)
+Delta frequency (hits minus library, in %). Red = enriched, gray = depleted. Pos 2: Gly +18%, Pro +17%, Ala -15%. Pos 3: Asp +18%.
 
-Amino acids grouped by their chemical properties (acidic, basic, nonpolar, polar). Bars show how frequent each group is in the library (gold) vs the best hits (dark red). The fold-change is shown above each bar.
+### Fig 11 — Statistical enrichment (Fisher's exact test)
+Same as Fig 1 with one-sided Fisher's exact test p-values. Significant (p<0.05) in dark red. Pos 2: Pro and Gly (p<0.001). Pos 3: Asp (p<0.001).
 
-Key finding at position 3: **acidic residues are 3.3x enriched** while basic residues are depleted to 0.3x. UBR3 substrates strongly prefer negative charge at position 3 and avoid positive charge.
+### Fig 12 — Position weight matrix (positions 2-8)
+Probability of each amino acid at positions 2-8 in the 54 hits. Heatmap format. Positions 2-3 show clear preferences (G 26%, D 22%); positions 4+ approach uniform (~5%).
 
-### Fig 10 — What's gained and what's lost in hits?
-`fig10_iceLogo_difference`
-
-For each amino acid, we subtracted the library frequency from the hit frequency. Positive bars (red) = more common in hits, negative bars (gray) = less common in hits.
-
-- **Position 2:** big gains for Gly (+18%) and Pro (+17%), big loss for Ala (-15%).
-- **Position 3:** big gain for Asp (+18%), losses for several residues.
-
-### Fig 11 — Which enrichments are statistically significant?
-`fig11_statistical_enrichment`
-
-Same enrichment as Fig 1, but with statistical testing (Fisher's exact test). Dark red bars = statistically significant (p < 0.05). Pale bars = not significant. Stars indicate confidence level (\* p<0.05, \*\* p<0.01, \*\*\* p<0.001).
-
-Significant enrichments:
-- **Position 2:** Pro (\*\*\*), Gly (\*\*\*)
-- **Position 3:** Asp (\*\*\*), Pro (\*), Thr (\*)
-
-### Fig 12 — What percentage of hits have each amino acid at each position?
-`fig12_PWM_heatmap`
-
-A heatmap showing, for the 54 best hits only, what fraction of peptides have each amino acid at positions 2 through 8. If all amino acids were equally likely, each cell would show ~5%.
-
-Positions 2-3 have clear hot spots (Gly 26%, Pro 22% at pos 2; Asp 22%, Glu 15% at pos 3). By position 4 onward, the distribution flattens out to near-random.
-
-### Fig 13 — Favorite vs least favorite dipeptides
-`fig13_consensus_vs_anticonsensus`
-
-- **Left:** the 10 most enriched two-residue combinations at positions 2-3 (the "consensus" — what UBR3 prefers).
-- **Right:** the 10 least enriched combinations that still appear in hits.
+### Fig 13 — Consensus vs anti-consensus dipeptides
+Top 10 most enriched and top 10 least enriched dipeptides at positions 2-3. Horizontal bar charts.
 
 ---
 
-## Extended Heatmaps
-
-### Fig 14 — Enrichment heatmap extended to positions 2-12
-`fig14_enrichment_heatmap_pos2_12`
-
-We extended the enrichment analysis beyond positions 2-3, checking every amino acid at every position from 2 to 12. The strong signal at positions 2-3 is clearly visible (dark red cells), while later positions show values mostly around 1 (no enrichment). This confirms the specificity is concentrated at the N-terminus.
+### Fig 14 — Enrichment heatmap (positions 2-12)
+Enrichment for each amino acid across 11 positions. Strong signal confined to positions 2-3; downstream positions near 1.0.
 
 ### Fig 15 — Log2 enrichment heatmap (positions 2-12)
-`fig15_log2_enrichment_heatmap`
+Same as Fig 14 on log2 scale. Diverging color map: red = enriched, blue = depleted, white = neutral.
 
-Same data as Fig 14 but on a log2 scale, which makes depletions as visible as enrichments. Red = enriched, blue = depleted, white = no change. Numbers show the log2 value (e.g., 2.0 means 4x enriched, -2.0 means 4x depleted).
+### Fig 16 — Category enrichment heatmap (positions 2-12)
+Enrichment by amino acid category across positions 2-12. Acidic 3.3x at position 3 is the dominant signal. Basic depleted at positions 2-3 but enriched at 7-8.
 
-### Fig 16 — Amino acid category enrichment across positions 2-12
-`fig16_category_enrichment_heatmap`
+### Fig 17 — Frequency heatmap (library vs hits)
+Side-by-side heatmaps of raw amino acid frequency (%) at positions 2-7. Library shows uniform distribution; hits show concentrated hot spots at positions 2-3.
 
-A compact view: amino acids grouped by type (acidic, basic, nonpolar, polar) across positions 2-12. The **3.3x acidic enrichment at position 3** is the single strongest signal — it stands out as the darkest cell in the entire heatmap. Basic residues are depleted at positions 2-3 but enriched at positions 7-8.
-
-### Fig 17 — Raw frequencies: library vs hits side by side
-`fig17_frequency_heatmap_lib_vs_hits`
-
-Two heatmaps side by side showing raw amino acid percentages at positions 2-7. Left = library (uniform distribution, ~5-10% each), right = best hits (concentrated hot spots at positions 2-3). The visual contrast makes clear how different the hits are from the starting library.
-
-### Fig 18 — Focused dipeptide heatmap (top position 2 residues)
-`fig18_focused_dipeptide_heatmap`
-
-A zoomed-in version of Fig 1c, showing only the 6 most enriched amino acids at position 2 (Pro, Gly, Thr, Gln, Glu, Asp) and their preferred partners at position 3. Highlights specific pairings like Pro-Asp (40x), Gly-Asp (35x), Gly-Glu (32x), Thr-Asn (31x).
+### Fig 18 — Focused dipeptide heatmap
+Dipeptide enrichment for the 6 most enriched position-2 residues (P, G, T, Q, E, D) against all 20 position-3 residues. Reveals sub-motifs: P/G prefer D/E; T prefers N; E prefers W.
 
 ---
 
-## Logo Color Variants
-`fig4_logo_canonical_warm`, `fig4_logo_classic`, `fig4_logo_red_spectrum`, `fig4_logo_sunset`, `fig4_logo_rose`, `fig4_logo_terracotta`, `fig4_logo_coral_blush`, `fig4_logo_charge_warm`
+## Methods
 
-Eight additional versions of the sequence logo (Fig 4) in different color schemes — all showing the same data, just with different colors for the amino acid categories. Options include classic biochemistry colors (red/blue/black/green), all-red shades, sunset tones, rose/pink, terracotta, coral, and more. Choose whichever fits your paper style.
-
----
-
-## Methods (for your paper)
-
-Enrichment of individual amino acids and dipeptides at positions 2 and 3 (after the initiator methionine) was calculated as the ratio of frequency in the best hits (n=54) to frequency in the full peptide library (n=16,514). Statistical significance was assessed by one-sided Fisher's exact test. Sequence logos were generated using the logomaker Python package, with letter heights proportional to Shannon information content. For stability analysis, the Protein Stability Index (PSI) in the AAVS control condition (mean of two biological replicates) was compared for peptides containing PD, PE, or GE motifs at N-terminal (positions 2-3) versus downstream positions within the 24-mer. All analyses were performed in Python 3 using pandas, numpy, matplotlib, logomaker, and scipy.
+Enrichment = frequency in hits (n=54) / frequency in library (n=16,514), calculated per amino acid and per dipeptide at positions 2-3. Statistical significance by one-sided Fisher's exact test. Sequence logos generated with logomaker (Shannon information content, bits). PSI (AAVS) = mean of PSI-293a and PSI-293b. Position-dependent stability assessed by comparing mean PSI for peptides with PD/PE/GE motifs at positions 2-3 vs downstream positions. Python 3, pandas, numpy, matplotlib, logomaker, scipy.
