@@ -140,9 +140,6 @@ ax.set_xticks([0, 1])
 ax.set_xticklabels(['Position 2', 'Position 3'], fontsize=12)
 ax.set_yticks(range(len(sorted_by_pos2)))
 ax.set_yticklabels(sorted_by_pos2.index, fontsize=11)
-for tick_label, aa in zip(ax.get_yticklabels(), sorted_by_pos2.index):
-    tick_label.set_color(CAT_COLORS.get(AA_CATEGORIES.get(aa, 'Polar'), '#333'))
-    tick_label.set_fontweight('bold')
 
 col_labels = ['Position 2', 'Position 3']
 for i, aa in enumerate(sorted_by_pos2.index):
