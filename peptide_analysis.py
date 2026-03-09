@@ -115,6 +115,22 @@ enrich_matrix = pd.DataFrame({
 })
 sorted_by_pos2 = enrich_matrix.sort_values('Position 2', ascending=False)
 
+lib_counts_2 = get_counts(df_all['AA2'])
+lib_counts_3 = get_counts(df_all['AA3'])
+hit_counts_2 = get_counts(df_hits['AA2'])
+hit_counts_3 = get_counts(df_hits['AA3'])
+n_lib = len(df_all)
+n_hit = len(df_hits)
+
+pval_dict = {}
+for aa in AMINO_ACIDS:
+    for pos_label, hc, lc in [('Position 2', hit_counts_2, lib_counts_2),
+                               ('Position 3', hit_counts_3, lib_counts_3)]:
+        table = [[hc[aa], n_hit - hc[aa]],
+                 [lc[aa], n_lib - lc[aa]]]
+        _, p = stats.fisher_exact(table, alternative='two-sided')
+        pval_dict[(aa, pos_label)] = p
+
 fig, ax = plt.subplots(figsize=(4.5, 8))
 from matplotlib.colors import LinearSegmentedColormap
 cmap_warm = LinearSegmentedColormap.from_list('warm', ['#FEF9E7', '#F5B041', '#E67E22', '#C0392B', '#78281F'])
@@ -124,14 +140,26 @@ ax.set_xticks([0, 1])
 ax.set_xticklabels(['Position 2', 'Position 3'], fontsize=12)
 ax.set_yticks(range(len(sorted_by_pos2)))
 ax.set_yticklabels(sorted_by_pos2.index, fontsize=11)
-for i in range(len(sorted_by_pos2)):
+for tick_label, aa in zip(ax.get_yticklabels(), sorted_by_pos2.index):
+    tick_label.set_color(CAT_COLORS.get(AA_CATEGORIES.get(aa, 'Polar'), '#333'))
+    tick_label.set_fontweight('bold')
+
+col_labels = ['Position 2', 'Position 3']
+for i, aa in enumerate(sorted_by_pos2.index):
     for j in range(2):
         v = sorted_by_pos2.values[i, j]
+        p = pval_dict[(aa, col_labels[j])]
+        stars = '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
         color = 'white' if v > 2.5 else 'black'
-        ax.text(j, i, f'{v:.1f}', ha='center', va='center', fontsize=9, color=color)
+        ax.text(j, i, f'{v:.1f}{stars}', ha='center', va='center', fontsize=9,
+                color=color, fontweight='bold' if stars else 'normal')
+
 cbar = plt.colorbar(im, ax=ax, shrink=0.6, label='Enrichment')
-ax.set_title('Enrichment Heatmap\n(Best Hits / Library)', fontweight='bold')
-plt.tight_layout()
+ax.set_title(f'Enrichment Heatmap (Best Hits / Library)\n'
+             f'(n={n_hit} hits, n={n_lib:,} library)', fontweight='bold')
+fig.text(0.5, 0.005, '* p<0.05  ** p<0.01  *** p<0.001 (Fisher exact test)',
+         ha='center', fontsize=7.5, color='#555')
+plt.tight_layout(rect=[0, 0.025, 1, 1])
 save(fig, 'fig1b_enrichment_heatmap')
 
 # ============================================================
@@ -234,28 +262,47 @@ save(fig, 'fig3_dipeptide_enrichment_bars')
 # ============================================================
 # FIG 4: Logo plot — compact, category-colored, legend outside
 # ============================================================
-print("\n--- Fig 4: Logo plot (category-colored, compact) ---")
-sequences_2pos = []
-for _, row in df_hits.iterrows():
-    seq = str(row['AA2']) + str(row['AA3'])
-    if len(seq) == 2 and all(c in AMINO_ACIDS for c in seq):
-        sequences_2pos.append(seq)
+print("\n--- Fig 4: Fold-change logo (best hits vs library) ---")
+fc_matrix = pd.DataFrame({0: enrich_aa2, 1: enrich_aa3}).T
 
-counts_matrix = logomaker.alignment_to_matrix(sequences_2pos, to_type='counts')
-info_matrix = logomaker.transform_matrix(counts_matrix, from_type='counts', to_type='information')
+fc_display = fc_matrix.copy()
+fc_display[fc_display <= 1] = 0
 
-fig, ax = plt.subplots(figsize=(2.2, 2.2))
-logo = logomaker.Logo(info_matrix, ax=ax, color_scheme=AA_COLOR_SCHEME,
-                      font_name='DejaVu Sans')
-ax.set_ylabel('Bits', fontsize=7)
+fig, ax = plt.subplots(figsize=(4.5, 3.5))
+logo = logomaker.Logo(fc_display, ax=ax, color_scheme=AA_COLOR_SCHEME,
+                      font_name='DejaVu Sans', vpad=0.0, width=0.95,
+                      stack_order='big_on_top')
+for patch in ax.patches:
+    patch.set_edgecolor('black')
+    patch.set_linewidth(0.5)
+
+ax.axhline(y=0, color='black', linewidth=0.5)
+ax.yaxis.grid(True, linestyle='--', alpha=0.25, color='#7B7D7D')
+ax.set_axisbelow(True)
+
+ax.set_ylabel('Fold Change (hits / library)', fontsize=9)
 ax.set_xticks([0, 1])
-ax.set_xticklabels(['Pos 2', 'Pos 3'], fontsize=7)
-ax.tick_params(axis='y', labelsize=6)
-ax.set_title('Sequence Logo — Best Hits', fontweight='bold', fontsize=8, pad=3)
+ax.set_xticklabels(['Pos 2', 'Pos 3'], fontsize=9)
+ax.tick_params(axis='y', labelsize=7)
+ax.set_title('Fold-Change Logo — Best Hits vs Library', fontweight='bold', fontsize=10, pad=6)
+
+max_stack = max(sum(v for v in enr.values() if v > 1)
+                for enr in [enrich_aa2, enrich_aa3])
+ax.set_ylim(-0.3, max_stack + 2.0)
+
+for pos_idx, enr in enumerate([enrich_aa2, enrich_aa3]):
+    top_aa = max(enr, key=enr.get)
+    top_fc = enr[top_aa]
+    stack_top = sum(v for v in enr.values() if v > 1)
+    ax.text(pos_idx, stack_top + 0.4, f'{top_aa} {top_fc:.1f}x',
+            ha='center', fontsize=7.5, fontweight='bold', color='#333')
+
+ax.text(0.5, -0.10, f'n = {len(df_hits)} best hits  vs  n = {len(df_all):,} library',
+        transform=ax.transAxes, ha='center', fontsize=7, color='#666', style='italic')
 
 legend_patches = [mpatches.Patch(color=CAT_COLORS[c], label=c) for c in
                   ['Acidic', 'Basic', 'Nonpolar', 'Polar']]
-ax.legend(handles=legend_patches, fontsize=5, frameon=False,
+ax.legend(handles=legend_patches, fontsize=6, frameon=False,
           loc='upper left', bbox_to_anchor=(1.02, 1.0),
           handlelength=0.8, handletextpad=0.3, borderpad=0.2)
 plt.tight_layout()
@@ -681,6 +728,9 @@ save(fig, 'fig8_PSI_pos23_vs_other')
 print("\n--- Fig 14: Multi-position enrichment heatmap ---")
 n_pos_wide = 11
 enrich_wide = np.zeros((20, n_pos_wide))
+pval_wide = np.ones((20, n_pos_wide))
+n_lib_total = len(df_all)
+n_hit_total = len(df_hits)
 for col_idx, pos in enumerate(range(2, 2 + n_pos_wide)):
     col = f'AA{pos}'
     lib_counts = Counter(df_all[col].dropna())
@@ -691,6 +741,9 @@ for col_idx, pos in enumerate(range(2, 2 + n_pos_wide)):
         lib_f = lib_counts.get(aa, 0) / lib_total if lib_total > 0 else 0
         hit_f = hit_counts.get(aa, 0) / hit_total if hit_total > 0 else 0
         enrich_wide[aa_idx, col_idx] = (hit_f / lib_f) if lib_f > 0 else 0
+        table = [[hit_counts.get(aa, 0), hit_total - hit_counts.get(aa, 0)],
+                 [lib_counts.get(aa, 0), lib_total - lib_counts.get(aa, 0)]]
+        _, pval_wide[aa_idx, col_idx] = stats.fisher_exact(table, alternative='two-sided')
 
 fig, ax = plt.subplots(figsize=(9, 9))
 im = ax.imshow(enrich_wide, cmap=cmap_warm, aspect='auto', vmin=0,
@@ -702,10 +755,15 @@ ax.set_yticklabels(AMINO_ACIDS, fontsize=11)
 for i in range(20):
     for j in range(n_pos_wide):
         v = enrich_wide[i, j]
+        p = pval_wide[i, j]
+        stars = '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
         if v >= 1.5:
             color = 'white' if v > 3 else 'black'
-            ax.text(j, i, f'{v:.1f}', ha='center', va='center', fontsize=7, color=color,
-                    fontweight='bold')
+            ax.text(j, i, f'{v:.1f}{stars}', ha='center', va='center', fontsize=7,
+                    color=color, fontweight='bold')
+        elif stars:
+            ax.text(j, i, f'{v:.1f}{stars}', ha='center', va='center', fontsize=6,
+                    color='black', fontweight='bold')
         elif v > 0:
             ax.text(j, i, f'{v:.1f}', ha='center', va='center', fontsize=6, color='#666')
 plt.colorbar(im, ax=ax, shrink=0.5, label='Enrichment (hits / library)')
@@ -713,6 +771,8 @@ ax.set_xlabel('Position in peptide', fontsize=12)
 ax.set_ylabel('Amino Acid', fontsize=12)
 ax.set_title('Amino Acid Enrichment Heatmap (Best Hits vs Library)\nPositions 2-12',
              fontweight='bold')
+ax.text(0.5, -0.05, '* p<0.05  ** p<0.01  *** p<0.001 (Fisher exact test)',
+        transform=ax.transAxes, ha='center', fontsize=9, color='#555')
 plt.tight_layout()
 save(fig, 'fig14_enrichment_heatmap_pos2_12')
 
