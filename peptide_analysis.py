@@ -924,4 +924,146 @@ ax.set_title('Dipeptide Enrichment — Top Enriched Position 2 Residues\n(P, G, 
 plt.tight_layout()
 save(fig, 'fig18_focused_dipeptide_heatmap')
 
+# ============================================================
+# FIG 19: Volcano plot — UBR3 screen (delta PSI vs significance)
+# ============================================================
+print("\n--- Fig 19: Volcano plot ---")
+mean_ctrl = (df_all['PSI-293a'] + df_all['PSI-293b']) / 2
+mean_ubr3 = (df_all['PSI-UBR3a'] + df_all['PSI-UBR3b']) / 2
+delta_psi = mean_ubr3 - mean_ctrl
+
+pvals = []
+for _, row in df_all.iterrows():
+    ctrl = [row['PSI-293a'], row['PSI-293b']]
+    ubr3 = [row['PSI-UBR3a'], row['PSI-UBR3b']]
+    _, p = stats.ttest_ind(ubr3, ctrl, equal_var=False)
+    pvals.append(p if np.isfinite(p) and p > 0 else 1.0)
+
+pvals = np.array(pvals)
+neg_log_p = -np.log10(pvals)
+neg_log_p = np.clip(neg_log_p, 0, 50)
+
+DPSI_CUTOFF = 0.5
+P_CUTOFF = 0.05
+neg_log_p_cutoff = -np.log10(P_CUTOFF)
+
+is_hit = df_all['HITubr3'].values
+sig_up = (delta_psi >= DPSI_CUTOFF) & (pvals < P_CUTOFF) & ~is_hit
+sig_down = (delta_psi <= -DPSI_CUTOFF) & (pvals < P_CUTOFF) & ~is_hit
+ns = ~sig_up & ~sig_down & ~is_hit
+
+fig, ax = plt.subplots(figsize=(16, 7))
+ax.scatter(delta_psi[ns], neg_log_p[ns], s=4, c='#BDC3C7', alpha=0.3,
+           edgecolors='none', rasterized=True, label='Not significant')
+ax.scatter(delta_psi[sig_down], neg_log_p[sig_down], s=6, c='#2E86C1', alpha=0.5,
+           edgecolors='none', rasterized=True, label=f'dPSI <= -{DPSI_CUTOFF}')
+ax.scatter(delta_psi[sig_up], neg_log_p[sig_up], s=6, c=COLOR_SEC, alpha=0.5,
+           edgecolors='none', rasterized=True, label=f'dPSI >= {DPSI_CUTOFF}')
+ax.scatter(delta_psi[is_hit], neg_log_p[is_hit], s=25, c=COLOR_MAIN, alpha=0.8,
+           edgecolors='black', linewidths=0.4, zorder=5, label=f'Best hits (n={is_hit.sum()})')
+
+ax.set_ylim(-0.1, 3.0)
+
+hit_idx = np.where(is_hit)[0]
+from adjustText import adjust_text
+texts = []
+for idx in hit_idx:
+    gene = df_all.iloc[idx]['Gene_ID']
+    texts.append(ax.text(delta_psi.iloc[idx], neg_log_p[idx], gene,
+                         fontsize=7.5, color='#333', fontweight='bold', zorder=6))
+adjust_text(texts, ax=ax, arrowprops=dict(arrowstyle='-', color='#999', lw=0.4),
+            force_text=(0.6, 0.9), force_points=(0.3, 0.3), expand=(1.3, 1.5))
+
+ax.axvline(x=DPSI_CUTOFF, color='#333', linestyle='--', linewidth=0.8, alpha=0.6)
+ax.axvline(x=-DPSI_CUTOFF, color='#333', linestyle='--', linewidth=0.8, alpha=0.6)
+ax.axhline(y=neg_log_p_cutoff, color='#333', linestyle='--', linewidth=0.8, alpha=0.6)
+
+ax.text(DPSI_CUTOFF + 0.02, 2.95, f'dPSI = {DPSI_CUTOFF}',
+        fontsize=8, color='#333', va='top')
+ax.text(-DPSI_CUTOFF - 0.02, 2.95, f'dPSI = -{DPSI_CUTOFF}',
+        fontsize=8, color='#333', va='top', ha='right')
+ax.text(ax.get_xlim()[1] * 0.98, neg_log_p_cutoff + 0.05, f'p = {P_CUTOFF}',
+        fontsize=8, color='#333', va='bottom', ha='right')
+
+ax.set_xlabel(r'$\Delta$ PSI (UBR3 $-$ Control)', fontsize=12)
+ax.set_ylabel('-log10(p-value)', fontsize=12)
+ax.set_title('Volcano Plot — UBR3 N-terminal Screen\n'
+             f'(n={len(df_all):,} peptides, t-test UBR3 vs Control replicates)',
+             fontweight='bold', fontsize=12)
+ax.legend(fontsize=9, frameon=False, loc='upper left', markerscale=1.5)
+plt.tight_layout()
+save(fig, 'fig19_volcano_plot')
+
+# FIG 20: Volcano plot — colored by Pos2 residue motif
+# ============================================================
+print("\n--- Fig 20: Volcano plot (colored by motif) ---")
+from adjustText import adjust_text
+
+pos2_colors = {
+    'G': '#2ECC71',   # green
+    'P': '#E74C3C',   # red
+    'E': '#3498DB',   # blue
+    'T': '#F39C12',   # amber
+    'D': '#9B59B6',   # purple
+    'A': '#1ABC9C',   # teal
+    'S': '#E67E22',   # orange
+    'Q': '#34495E',   # dark gray-blue
+}
+DEFAULT_COLOR = '#95A5A6'
+
+fig, ax = plt.subplots(figsize=(16, 7))
+ax.scatter(delta_psi[ns], neg_log_p[ns], s=4, c='#BDC3C7', alpha=0.3,
+           edgecolors='none', rasterized=True, label='Not significant')
+ax.scatter(delta_psi[sig_down], neg_log_p[sig_down], s=6, c='#BDC3C7', alpha=0.3,
+           edgecolors='none', rasterized=True)
+ax.scatter(delta_psi[sig_up & ~is_hit], neg_log_p[sig_up & ~is_hit], s=6, c='#BDC3C7',
+           alpha=0.3, edgecolors='none', rasterized=True)
+
+hit_idx = np.where(is_hit)[0]
+plotted_pos2 = set()
+for idx in hit_idx:
+    seq = df_all.iloc[idx]['AA_seq']
+    p2 = seq[1]
+    c = pos2_colors.get(p2, DEFAULT_COLOR)
+    lbl = f'Pos2 = {p2} (n={sum(1 for i in hit_idx if df_all.iloc[i]["AA_seq"][1]==p2)})' if p2 not in plotted_pos2 else None
+    ax.scatter(delta_psi.iloc[idx], neg_log_p[idx], s=50, c=c, alpha=0.85,
+               edgecolors='black', linewidths=0.5, zorder=5, label=lbl)
+    plotted_pos2.add(p2)
+
+ax.set_ylim(-0.1, 3.0)
+
+texts = []
+for idx in hit_idx:
+    seq = df_all.iloc[idx]['AA_seq']
+    gene = df_all.iloc[idx]['Gene_ID']
+    dipeptide = seq[1:3]
+    p2 = seq[1]
+    c = pos2_colors.get(p2, DEFAULT_COLOR)
+    texts.append(ax.text(delta_psi.iloc[idx], neg_log_p[idx],
+                         f'{gene} ({dipeptide})',
+                         fontsize=7.5, color=c, fontweight='bold', zorder=6))
+adjust_text(texts, ax=ax, arrowprops=dict(arrowstyle='-', color='#999', lw=0.4),
+            force_text=(0.6, 0.9), force_points=(0.3, 0.3), expand=(1.3, 1.5))
+
+ax.axvline(x=DPSI_CUTOFF, color='#333', linestyle='--', linewidth=0.8, alpha=0.6)
+ax.axvline(x=-DPSI_CUTOFF, color='#333', linestyle='--', linewidth=0.8, alpha=0.6)
+ax.axhline(y=neg_log_p_cutoff, color='#333', linestyle='--', linewidth=0.8, alpha=0.6)
+
+ax.text(DPSI_CUTOFF + 0.02, 2.95, f'dPSI = {DPSI_CUTOFF}',
+        fontsize=8, color='#333', va='top')
+ax.text(-DPSI_CUTOFF - 0.02, 2.95, f'dPSI = -{DPSI_CUTOFF}',
+        fontsize=8, color='#333', va='top', ha='right')
+ax.text(ax.get_xlim()[1] * 0.98, neg_log_p_cutoff + 0.05, f'p = {P_CUTOFF}',
+        fontsize=8, color='#333', va='bottom', ha='right')
+
+ax.set_xlabel(r'$\Delta$ PSI (UBR3 $-$ Control)', fontsize=12)
+ax.set_ylabel('-log10(p-value)', fontsize=12)
+ax.set_title('Volcano Plot — Best Hits Colored by Position 2 Residue\n'
+             f'(n={len(df_all):,} peptides, label shows Gene (Pos2–Pos3 dipeptide))',
+             fontweight='bold', fontsize=12)
+ax.legend(fontsize=9, frameon=True, loc='upper left', markerscale=1.2,
+          edgecolor='#ccc', fancybox=True)
+plt.tight_layout()
+save(fig, 'fig20_volcano_motif')
+
 print(f"\n=== All figures saved to: {OUTPUT_DIR} ===")
